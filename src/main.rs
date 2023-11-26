@@ -13,7 +13,7 @@ fn main() {
         // 0.6,
     // );
 
-    let mut network = Network::<activations::Sigmoid>::load("model.json").unwrap();
+    let mut network = Network::<activations::Tanh>::load("model.json").unwrap();
 
     // println!("Before training");
     // println!("0, 0 = {:?}", network.feed_forward(vec![0., 0.])[0]);

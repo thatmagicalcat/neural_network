@@ -16,7 +16,7 @@ impl ActivationFunc for Sigmoid {
     }
 }
 
-struct Tanh;
+pub struct Tanh;
 impl ActivationFunc for Tanh {
     fn function(x: f64) -> f64 {
         x.tanh()
@@ -27,7 +27,7 @@ impl ActivationFunc for Tanh {
     }
 }
 
-struct Relu;
+pub struct Relu;
 impl ActivationFunc for Relu {
     fn function(x: f64) -> f64 {
         0.0f64.max(x)
