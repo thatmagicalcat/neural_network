@@ -1,7 +1,9 @@
-use crate::activations::Activation;
+use std::marker::PhantomData;
+
+use crate::activations::*;
 use crate::matrix::Matrix;
 
-pub struct Network<'a> {
+pub struct Network<F: ActivationFunc> {
     /// Size of each layers
     layers: Vec<usize>,
 
@@ -20,12 +22,11 @@ pub struct Network<'a> {
     /// Learning rate of this nerual network
     learning_rate: f64,
 
-    /// Activation function for this nerual network
-    activation: Activation<'a>,
+    _activation: PhantomData<F>,
 }
 
-impl<'a> Network<'a> {
-    pub fn new(layers: Vec<usize>, learning_rate: f64, activation: Activation<'a>) -> Self {
+impl<F: ActivationFunc> Network<F> {
+    pub fn new(layers: Vec<usize>, learning_rate: f64) -> Self {
         let mut weights = Vec::with_capacity(layers.len() - 1);
         let mut biases = Vec::with_capacity(layers.len() - 1);
 
@@ -39,8 +40,8 @@ impl<'a> Network<'a> {
             weights,
             biases,
             learning_rate,
-            activation,
             data: vec![],
+            _activation: PhantomData,
         }
     }
 
@@ -56,7 +57,7 @@ impl<'a> Network<'a> {
             current = self.weights[i]
                 .mul(&current)
                 .add(&self.biases[i])
-                .map(self.activation.function);
+                .map(F::function);
 
             self.data.push(current.clone());
         }
@@ -71,7 +72,7 @@ impl<'a> Network<'a> {
 
         let parsed = Matrix::row(outputs);
         let mut errors = Matrix::row(targets).sub(&parsed);
-        let mut gradients = parsed.map(self.activation.derivative);
+        let mut gradients = parsed.map(F::derivative);
 
         for i in (0..self.layers.len() - 1).rev() {
             gradients = gradients.dot(&errors).map(&|x| x * self.learning_rate);
@@ -80,14 +81,14 @@ impl<'a> Network<'a> {
             self.biases[i] = self.biases[i].add(&gradients);
 
             errors = self.weights[i].transpose().mul(&errors);
-            gradients = self.data[i].map(self.activation.derivative);
+            gradients = self.data[i].map(F::derivative);
         }
     }
 
     pub fn train(&mut self, inputs: Vec<Vec<f64>>, targets: Vec<Vec<f64>>, epochs: u16) {
         for i in 1..=epochs {
             if epochs < 100 || i % (epochs / 100) == 0 {
-                use std::io::{Write, stdout};
+                use std::io::{stdout, Write};
                 print!("\r[Log] Epoch {i} of {epochs}");
                 stdout().flush().unwrap();
             }

@@ -8,10 +8,9 @@ fn main() {
     let inputs = vec![vec![0., 0.], vec![1., 0.], vec![0., 1.], vec![1., 1.]];
     let outputs = vec![vec![0.0], vec![1.0], vec![1.0], vec![0.0]];
 
-    let mut network = Network::new(
+    let mut network = Network::<activations::SIGMOID>::new(
         vec![2, 3, 1],
         0.6,
-        activations::SIGMOID,
     );
 
     println!("Before training");
