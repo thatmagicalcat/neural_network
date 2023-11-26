@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+nanoserde = "0.1.35"
 rand = "0.8.5"

@@ -5,8 +5,8 @@ pub trait ActivationFunc {
     fn derivative(x: f64) -> f64;
 }
 
-pub struct SIGMOID;
-impl ActivationFunc for SIGMOID {
+pub struct Sigmoid;
+impl ActivationFunc for Sigmoid {
     fn function(x: f64) -> f64 {
         1.0 / (1.0 + E.powf(-x))
     }
@@ -16,8 +16,8 @@ impl ActivationFunc for SIGMOID {
     }
 }
 
-struct TANH;
-impl ActivationFunc for TANH {
+struct Tanh;
+impl ActivationFunc for Tanh {
     fn function(x: f64) -> f64 {
         x.tanh()
     }
@@ -27,8 +27,8 @@ impl ActivationFunc for TANH {
     }
 }
 
-struct RELU;
-impl ActivationFunc for RELU {
+struct Relu;
+impl ActivationFunc for Relu {
     fn function(x: f64) -> f64 {
         0.0f64.max(x)
     }

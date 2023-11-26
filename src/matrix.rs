@@ -1,8 +1,9 @@
 use std::ops::{Index, IndexMut};
 
+use nanoserde::{SerJson, DeJson};
 use rand::{thread_rng, Rng};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, SerJson, DeJson)]
 pub struct Matrix {
     pub rows: usize,
     pub cols: usize,
@@ -167,5 +168,11 @@ impl IndexMut<usize> for Matrix {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         let start = index * self.cols;
         &mut self.data[start..start + self.cols]
+    }
+}
+
+impl Into<Vec<f64>> for Matrix {
+    fn into(self) -> Vec<f64> {
+        self.data
     }
 }

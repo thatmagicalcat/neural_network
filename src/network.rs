@@ -1,7 +1,30 @@
+use std::fs;
+use std::io::{stdout, Write};
 use std::marker::PhantomData;
 
 use crate::activations::*;
 use crate::matrix::Matrix;
+
+use nanoserde::{DeJson, SerJson};
+
+#[derive(SerJson, DeJson)]
+struct Data {
+    layers: Vec<usize>,
+    learning_rate: f64,
+    weights: Vec<Matrix>,
+    biases: Vec<Matrix>,
+}
+
+impl<F: ActivationFunc> From<&Network<F>> for Data {
+    fn from(value: &Network<F>) -> Self {
+        Self {
+            layers: value.layers.clone(),
+            learning_rate: value.learning_rate,
+            weights: value.weights.clone(),
+            biases: value.biases.clone(),
+        }
+    }
+}
 
 pub struct Network<F: ActivationFunc> {
     /// Size of each layers
@@ -45,6 +68,32 @@ impl<F: ActivationFunc> Network<F> {
         }
     }
 
+    pub fn load(file_path: &str) -> std::io::Result<Self> {
+        let contents = fs::read_to_string(file_path)?;
+
+        let Ok(data) = Data::deserialize_json(&contents) else {
+            panic!("Failed to parse data");
+        };
+
+        Ok(Self {
+            layers: data.layers,
+            weights: data.weights,
+            biases: data.biases,
+            learning_rate: data.learning_rate,
+            data: Vec::new(),
+            _activation: PhantomData,
+        })
+    }
+
+    pub fn save(&self, file_path: &str) -> std::io::Result<()> {
+        let mut file = fs::File::create(file_path)?;
+
+        let data = Data::from(self);
+        file.write_all(data.serialize_json().as_bytes())?;
+
+        Ok(())
+    }
+
     pub fn feed_forward(&mut self, inputs: Vec<f64>) -> Vec<f64> {
         if inputs.len() != self.layers[0] {
             panic!("Invalid number of inputs");
@@ -75,7 +124,7 @@ impl<F: ActivationFunc> Network<F> {
         let mut gradients = parsed.map(F::derivative);
 
         for i in (0..self.layers.len() - 1).rev() {
-            gradients = gradients.dot(&errors).map(&|x| x * self.learning_rate);
+            gradients = gradients.dot(&errors).map(|x| x * self.learning_rate);
 
             self.weights[i] = self.weights[i].add(&gradients.mul(&self.data[i].transpose()));
             self.biases[i] = self.biases[i].add(&gradients);
@@ -88,7 +137,6 @@ impl<F: ActivationFunc> Network<F> {
     pub fn train(&mut self, inputs: Vec<Vec<f64>>, targets: Vec<Vec<f64>>, epochs: u16) {
         for i in 1..=epochs {
             if epochs < 100 || i % (epochs / 100) == 0 {
-                use std::io::{stdout, Write};
                 print!("\r[Log] Epoch {i} of {epochs}");
                 stdout().flush().unwrap();
             }
