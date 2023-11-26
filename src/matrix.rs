@@ -6,7 +6,7 @@ use rand::{thread_rng, Rng};
 pub struct Matrix {
     pub rows: usize,
     pub cols: usize,
-    pub data: Vec<Vec<f64>>,
+    pub data: Vec<f64>,
 }
 
 impl Matrix {
@@ -16,7 +16,24 @@ impl Matrix {
         Self {
             rows,
             cols,
-            data: vec![vec![0.0; cols]; rows],
+            data: vec![0.0; cols * rows],
+        }
+    }
+
+    /// Create a row * col matrix with
+    /// given data
+    pub fn from_parts(rows: usize, cols: usize, data: Vec<f64>) -> Self {
+        debug_assert_eq!(rows * cols, data.len());
+        Self { rows, cols, data }
+    }
+
+    /// Create a row metrix with
+    /// given data
+    pub fn row(data: Vec<f64>) -> Self {
+        Self {
+            rows: 1,
+            cols: data.len(),
+            data,
         }
     }
 
@@ -118,12 +135,10 @@ impl Matrix {
     /// Takes a closure and creates an iterator which calls that closure on each
     /// element.
     pub fn map(&self, func: impl Fn(f64) -> f64) -> Self {
-        Matrix::from(
-            self.data
-                .clone()
-                .into_iter()
-                .map(|i| i.into_iter().map(|i| func(i)).collect())
-                .collect::<Vec<Vec<_>>>(),
+        Matrix::from_parts(
+            self.rows,
+            self.cols,
+            self.data.iter().map(|i| func(*i)).collect::<Vec<_>>(),
         )
     }
 
@@ -140,25 +155,17 @@ impl Matrix {
     }
 }
 
-impl From<Vec<Vec<f64>>> for Matrix {
-    fn from(value: Vec<Vec<f64>>) -> Self {
-        Self {
-            rows: value.len(),
-            cols: value.first().and_then(|i| Some(i.len())).unwrap_or(0),
-            data: value,
-        }
-    }
-}
-
 impl Index<usize> for Matrix {
     type Output = [f64];
     fn index(&self, index: usize) -> &Self::Output {
-        &self.data[index]
+        let start = index * self.cols;
+        &self.data[start..start + self.cols]
     }
 }
 
 impl IndexMut<usize> for Matrix {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.data[index]
+        let start = index * self.cols;
+        &mut self.data[start..start + self.cols]
     }
 }

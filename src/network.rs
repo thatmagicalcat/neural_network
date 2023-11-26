@@ -49,7 +49,7 @@ impl<'a> Network<'a> {
             panic!("Invalid number of inputs");
         }
 
-        let mut current = Matrix::from(vec![inputs]).transpose();
+        let mut current = Matrix::row(inputs).transpose();
         self.data = vec![current.clone()];
 
         for i in 0..self.layers.len() - 1 {
@@ -69,8 +69,8 @@ impl<'a> Network<'a> {
             panic!("Invalid number of targets");
         }
 
-        let parsed = Matrix::from(vec![outputs]);
-        let mut errors = Matrix::from(vec![targets]).sub(&parsed);
+        let parsed = Matrix::row(outputs);
+        let mut errors = Matrix::row(targets).sub(&parsed);
         let mut gradients = parsed.map(self.activation.derivative);
 
         for i in (0..self.layers.len() - 1).rev() {
