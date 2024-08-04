@@ -1,1 +1,1 @@
-# nn_from_scratch
+# A simple neural network library
